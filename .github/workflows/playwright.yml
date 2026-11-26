@@ -23,9 +23,11 @@ jobs:
     - name: Warm up staging storefront (free-tier backend sleeps when idle)
       run: |
         BASE=https://atqaa-medusa-storefront.vercel.app/vn
+        # The storefront sets a cookie then redirects (307) to the same URL, so keep a cookie jar
+        JAR=$(mktemp)
         for path in "" /store /products/classic-t-shirt /products/winter-jacket /cart; do
           for attempt in 1 2 3 4 5 6 7 8; do
-            code=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 60 "$BASE$path" || echo 000)
+            code=$(curl -sL -c "$JAR" -b "$JAR" -o /dev/null -w '%{http_code}' --max-time 60 "$BASE$path") || code=000
             echo "GET $BASE$path -> $code (attempt $attempt)"
             if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then break; fi
             sleep 5
