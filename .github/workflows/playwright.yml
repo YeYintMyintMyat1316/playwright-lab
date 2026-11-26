@@ -35,6 +35,11 @@ jobs:
         done
     - name: Run Playwright tests
       run: npx playwright test
+      env:
+        # Optional: Lab 03 Medusa Admin order verification (add these as repository secrets)
+        MEDUSA_BACKEND_URL: ${{ secrets.MEDUSA_BACKEND_URL }}
+        MEDUSA_ADMIN_EMAIL: ${{ secrets.MEDUSA_ADMIN_EMAIL }}
+        MEDUSA_ADMIN_PASSWORD: ${{ secrets.MEDUSA_ADMIN_PASSWORD }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

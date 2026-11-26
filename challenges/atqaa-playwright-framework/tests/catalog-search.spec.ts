@@ -1,37 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { gotoStorefront } from './support/navigation';
+import { ProductPage } from '../pages/ProductPage';
 
 test('Verify guest customer can browse store and view Winter jacket details', async ({ page }) => {
   // Allow extra time in case the staging server is waking up from a cold start
   test.setTimeout(150_000);
+  const productPage = new ProductPage(page);
 
   // STEP 1: Navigate to the Storefront homepage (uses baseURL from config)
-  // (retries automatically if the sleeping staging server answers with a 504)
-  await gotoStorefront(page, '/');
+  await productPage.navigateTo('/');
 
   // STEP 2: Open the navigation Menu and go to the Store catalog
-  const menuButton = page.getByRole('button', { name: /menu/i });
-  await expect(menuButton).toBeVisible();
-  await menuButton.click();
-
-  const storeLink = page.getByRole('link', { name: /^store$/i });
-  await expect(storeLink).toBeVisible();
-  await storeLink.click();
-
-  // Verify navigation to the /vn/store catalog page
+  await expect(productPage.menuButton).toBeVisible({ timeout: 15_000 });
+  await productPage.openStoreFromMenu();
   await expect(page).toHaveURL(/.*\/store/);
 
   // STEP 3: Select the "Winter jacket" product from the product list
-  // Increased timeout to 15000ms to accommodate Render Cloud cold-start latency
-  const productCard = page.getByRole('link', { name: /Winter jacket/i }).first();
-  await expect(productCard).toBeVisible({ timeout: 15000 });
-  await productCard.click();
+  await expect(productPage.storeProductLink('Winter jacket')).toBeVisible({ timeout: 15_000 });
+  await productPage.clickProductInStore('Winter jacket');
 
   // STEP 4: Web-First Assertions to verify the product detail page
-  // 1. Verify the URL transitions to the product details route (/products/...)
-  await expect(page).toHaveURL(/.*products/, { timeout: 15000 });
-
-  // 2. Verify the product heading is visible on the page
-  const productTitle = page.getByRole('heading', { name: /Winter jacket/i });
-  await expect(productTitle).toBeVisible();
+  await expect(page).toHaveURL(/.*products/, { timeout: 15_000 });
+  await expect(productPage.productTitle).toContainText(/winter jacket/i);
 });
