@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { gotoStorefront } from './support/navigation';
 
 /** Converts a price label such as "₫1,000,000" into the number 1000000. */
 const toNumber = (text: string): number => Number(text.replace(/[^\d]/g, ''));
@@ -10,7 +11,7 @@ async function readSubtotal(page: Page): Promise<number> {
 
 /** Opens a product from the /vn/store catalog by its visible name. */
 async function openProductFromStore(page: Page, name: RegExp) {
-  await page.goto('/vn/store');
+  await gotoStorefront(page, '/vn/store');
   const productCard = page.getByRole('link', { name }).first();
   await expect(productCard).toBeVisible({ timeout: 15000 });
   await productCard.click();
@@ -38,7 +39,7 @@ async function addToCart(page: Page, expectedCount: number) {
 
 test('E2E Extended Cart Lifecycle: multiple items, update quantity, remove item, proceed to checkout', async ({ page }) => {
   // This flow makes several round trips to the Render Cloud backend.
-  test.setTimeout(240_000);
+  test.setTimeout(360_000);
 
   // 1. ADD THE FIRST PRODUCT (with variants): Classic T-Shirt, size L, color Black
   await openProductFromStore(page, /classic t-shirt/i);
@@ -55,7 +56,7 @@ test('E2E Extended Cart Lifecycle: multiple items, update quantity, remove item,
   await addToCart(page, 2);
 
   // Go to the cart and check that both line items are listed
-  await page.goto('/vn/cart');
+  await gotoStorefront(page, '/vn/cart');
   await expect(page.getByRole('heading', { name: 'Cart', level: 1 })).toBeVisible({ timeout: 15000 });
 
   const cartRows = page.getByTestId('product-row');

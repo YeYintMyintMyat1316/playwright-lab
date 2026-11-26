@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { gotoStorefront } from './support/navigation';
 
 /** Converts a price label such as "₫1,000,000" into the number 1000000. */
 const toNumber = (text: string): number => Number(text.replace(/[^\d]/g, ''));
@@ -10,10 +11,10 @@ async function readSubtotal(page: Page): Promise<number> {
 
 test('E2E Cart Workflow: Select variant, add to cart, verify drawer & update quantity', async ({ page }) => {
   // Add-to-cart and quantity updates go through the Render Cloud backend, which can be slow on cold start.
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   // 1. NAVIGATE TO THE PRODUCT LIST (/vn/store) AND SELECT A PRODUCT
-  await page.goto('/vn/store');
+  await gotoStorefront(page, '/vn/store');
 
   const productCard = page.getByRole('link', { name: /classic t-shirt/i }).first();
   await expect(productCard).toBeVisible({ timeout: 15000 });

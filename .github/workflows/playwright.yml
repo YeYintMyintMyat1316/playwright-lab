@@ -20,6 +20,17 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium firefox
+    - name: Warm up staging storefront (free-tier backend sleeps when idle)
+      run: |
+        BASE=https://atqaa-medusa-storefront.vercel.app/vn
+        for path in "" /store /products/classic-t-shirt /products/winter-jacket /cart; do
+          for attempt in 1 2 3 4 5 6 7 8; do
+            code=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 60 "$BASE$path" || echo 000)
+            echo "GET $BASE$path -> $code (attempt $attempt)"
+            if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then break; fi
+            sleep 5
+          done
+        done
     - name: Run Playwright tests
       run: npx playwright test
     - uses: actions/upload-artifact@v4

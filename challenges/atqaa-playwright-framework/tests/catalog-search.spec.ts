@@ -1,8 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { gotoStorefront } from './support/navigation';
 
 test('Verify guest customer can browse store and view Winter jacket details', async ({ page }) => {
+  // Allow extra time in case the staging server is waking up from a cold start
+  test.setTimeout(150_000);
+
   // STEP 1: Navigate to the Storefront homepage (uses baseURL from config)
-  await page.goto('/');
+  // (retries automatically if the sleeping staging server answers with a 504)
+  await gotoStorefront(page, '/');
 
   // STEP 2: Open the navigation Menu and go to the Store catalog
   const menuButton = page.getByRole('button', { name: /menu/i });
